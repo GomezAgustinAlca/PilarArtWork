@@ -14,7 +14,7 @@ export const siteConfig = {
   email: 'contacto@nombreartista.com',
 
   socials: {
-    instagram: 'https://instagram.com/nombreartista',
+    instagram: 'https://www.instagram.com/gpil.art',
     facebook: '',
   },
 
