@@ -37,6 +37,7 @@
   --text-3xl: 2.25rem; /* 36px */
   --text-4xl: 3rem; /* 48px */
   --text-5xl: 3.75rem; /* 60px */
+  --text-6xl: 4.5rem; /* 72px — display editorial, títulos de página en desktop */
 
   --leading-tight: 1.15;
   --leading-snug: 1.35;
@@ -46,7 +47,7 @@
   --tracking-tight: -0.02em;
   --tracking-normal: 0em;
   --tracking-wide: 0.04em;
-  --tracking-wider: 0.08em;
+  --tracking-wider: 0.12em;
 
   /* ---- Espaciado (escala de 4px) ---- */
   --space-1: 0.25rem; /* 4px */

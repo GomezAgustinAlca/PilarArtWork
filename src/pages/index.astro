@@ -130,6 +130,14 @@ const seleccion = destacadas.filter((o) => o.id !== heroObras[0]?.id).slice(0, 3
     margin-bottom: var(--space-6);
   }
 
+  @media (min-width: 768px) {
+    .destacadas h2,
+    .bio-excerpt h2,
+    .home-cta h2 {
+      font-size: var(--text-4xl);
+    }
+  }
+
   .destacadas-grid {
     list-style: none;
     display: grid;

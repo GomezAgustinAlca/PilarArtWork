@@ -774,6 +774,62 @@ content.config.ts intacto, sin cambios.
   del estado vacío + de `wa.me` en el `dist/` generado para confirmar que el
   link de WhatsApp está presente en ambas páginas.
 
+Identidad visual vía tipografía/textura, sin tocar color (2026-07-23): la
+paleta sigue neutra + acento único; el pedido explícito era NO sumar color,
+así que toda la identidad nueva pasa por grano, escala tipográfica y
+letter-spacing. No se tocó la grilla de galería, el lightbox ni el hero
+(HeroPincelada.astro/index.astro `.hero`), tal como se pidió.
+- Grano de papel/lienzo: nuevo `public/noise.svg` (feTurbulence
+  `fractalNoise` + `feColorMatrix` que pone R/G/B en 0 y el canal alfa en
+  `0.1` del ruido original — así el resultado es grano negro semitransparente,
+  no una imagen de color) tileado 200×200px como `background-image` del
+  `body` en src/styles/global.css (además de `background-color`, que se
+  sigue viendo debajo). Es un SVG generado por fórmula, no una foto/textura
+  rasterizada, así que pesa un par de líneas de XML. Se probó primero con
+  alfa muy bajo (0.05) y no se notaba nada en absoluto contra `--color-bg` —
+  0.1 fue el punto en el que se ve una calidez de "papel" perceptible sin
+  competir con las obras (se verificó aislado en un HTML de prueba antes de
+  fijar el valor). Como es `background-image` del body (no un overlay
+  encima de todo con `mix-blend-mode`), no se pinta sobre las imágenes de
+  obras ni sobre superficies opacas (cards, botones, `--color-surface`):
+  solo se ve en los márgenes/gutters y detrás del texto que no tiene su
+  propio fondo, que es justamente el efecto buscado.
+- Escala tipográfica editorial: nuevo token `--text-6xl` (4.5rem/72px) en
+  tokens.css. `--tracking-wider` subió de `0.08em` a `0.12em` (más
+  contraste en las versalitas de metadatos — eyebrow, `figcaption` de
+  /sobre — sin tocar `--tracking-wide`, que usan labels más chicos como
+  badges/form labels).
+- h1 de página (Galería, María del Pilar Gómez en /sobre, Exposiciones,
+  Encargos y prensa, Contacto) ahora tiene tamaño explícito a nivel global
+  en global.css: `var(--text-4xl)` (48px) mobile, `var(--text-6xl)` (72px)
+  desde 768px — antes esos `<h1>` no tenían font-size propio y caían al
+  tamaño por defecto del navegador. Es una regla `h1 { }` de baja
+  especificidad a propósito: `.hero-info h1` (index.astro) tiene mayor
+  especificidad por selector con clase y gana esa pulseada sin tocarla, así
+  que el hero quedó exactamente igual que antes. Por la misma razón
+  tampoco afectó a `.obra-info h2` (ObraCard, grilla de galería) ni a los
+  `h2` con override propio de cada página (`.sobre-texto h2`, `.expo-info
+  h2`, `.prensa-info h2`, `.contacto-directo h2` — todos títulos de
+  ítem/subsección, no de página, así que se dejaron en su tamaño chico
+  actual a propósito).
+- Títulos de sección de la home (`.destacadas h2`, `.bio-excerpt h2`,
+  `.home-cta h2` en index.astro: "Obras destacadas", "Sobre Pilar Gómez",
+  "¿Te interesa una obra o un encargo?") suben de `--text-2xl` fijo a
+  `--text-2xl` (28px) en mobile y `--text-4xl` (48px) desde 768px — mismo
+  patrón mobile-first que el h1 de página, un escalón por debajo para que
+  quede claro que es "sección" y no "página".
+- Verificado con `npm run build` (6 páginas, sin errores) y con Playwright
+  (instalado ad-hoc sobre `npm run dev`, no es dependencia del proyecto —
+  se desinstaló al terminar): screenshots desktop y mobile de las 6
+  páginas con scroll-through previo (mismo motivo que otras veces: disparar
+  los `[data-reveal]` antes de una captura `fullPage`), confirmando que
+  ningún título quedó desbordado ni partido feo — "María del Pilar Gómez"
+  entra en una sola línea en desktop y envuelve limpio a dos líneas en
+  mobile (390px), "Encargos y prensa" ídem. Se verificó también, con un
+  HTML aislado fuera del sitio, que el filtro SVG del grano efectivamente
+  pinta ruido (probado primero a alfa alto para confirmar que no estaba
+  roto, después bajado a 0.1) antes de fijar el valor final en producción.
+
 ## Notas de entorno
 - Windows, dev server con `npm run dev` en modo foreground (no usar `astro dev --background` salvo que se pida explícitamente).
 - `npm run dev` en Astro 7 deja un proceso daemon corriendo en segundo plano

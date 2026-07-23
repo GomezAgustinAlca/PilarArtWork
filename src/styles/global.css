@@ -12,7 +12,10 @@ html {
 
 body {
   margin: 0;
-  background: var(--color-bg);
+  background-color: var(--color-bg);
+  background-image: url('/noise.svg');
+  background-repeat: repeat;
+  background-size: 200px 200px;
   color: var(--color-text);
   font-family: var(--font-sans);
   font-size: var(--text-base);
@@ -31,6 +34,23 @@ h4 {
   letter-spacing: var(--tracking-tight);
   color: var(--color-text);
   margin: 0 0 var(--space-4);
+}
+
+/*
+  Escala editorial de títulos de página: solo el h1 "de nivel de página"
+  (page-header de cada sección) hereda esto. Cualquier h1/h2 con su propio
+  selector con clase (ej. .hero-info h1, .obra-info h2) gana por
+  especificidad y queda intacto — así el hero y la card de galería no se
+  ven afectados por este ajuste global.
+*/
+h1 {
+  font-size: var(--text-4xl);
+}
+
+@media (min-width: 768px) {
+  h1 {
+    font-size: var(--text-6xl);
+  }
 }
 
 p {
