@@ -2,7 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
-import { siteConfig } from '../config/site';
+import { siteConfig, whatsappLink } from '../config/site';
 
 const exposiciones = (await getCollection('exposiciones')).sort(
   (a, b) => b.data.fecha.valueOf() - a.data.fecha.valueOf()
@@ -22,6 +22,18 @@ const formatearFecha = (fecha: Date) =>
     <h1>Exposiciones</h1>
   </header>
 
+  {
+    exposiciones.length === 0 ? (
+      <div class="container empty-state" data-reveal>
+        <p>
+          Todavía no hay exposiciones cargadas en esta sección. Mientras tanto, escribinos
+          por WhatsApp si querés conocer la trayectoria de {siteConfig.artistName}.
+        </p>
+        <a class="btn btn-primary" href={whatsappLink('Hola! Quería consultar sobre las exposiciones.')}>
+          Escribir por WhatsApp
+        </a>
+      </div>
+    ) : (
   <ul class="container exposiciones-list">
     {
       exposiciones.map((expo) => (
@@ -44,6 +56,8 @@ const formatearFecha = (fecha: Date) =>
       ))
     }
   </ul>
+    )
+  }
 </Layout>
 
 <style>
@@ -63,6 +77,18 @@ const formatearFecha = (fecha: Date) =>
   .exposiciones-list {
     list-style: none;
     padding-bottom: var(--space-10);
+  }
+
+  .empty-state {
+    max-width: 40rem;
+    padding-block: var(--space-8) var(--space-12);
+    text-align: center;
+    margin-inline: auto;
+  }
+
+  .empty-state p {
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-5);
   }
 
   .expo-item {

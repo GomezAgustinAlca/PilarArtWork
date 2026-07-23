@@ -748,6 +748,32 @@ src/scripts/gallery.js, sin tocar tokens.css.
   completo, sin bordes vacíos, en las 3 obras de desktop y en mobile. Sin
   errores de consola en ningún caso.
 
+Limpieza de contenido de ejemplo en /exposiciones y /encargos (2026-07-23):
+el sitio ya estaba publicado con las 4 entradas de ejemplo de cada collection
+(exposiciones y muestras que no existieron, un cortometraje "El viaje", una
+"Revista Trazo" inventada) todavía visibles en producción. Se borraron las 8
+entradas .yaml (expo-1..4, prensa-1..4) y sus 4 imágenes placeholder
+(src/content/exposiciones/images/, src/content/prensa/images/) — las carpetas
+quedaron vacías (el `glob` loader tira un WARN de "base directory does not
+exist" en el build, no un error; es cosmético y desaparece en cuanto se
+agregue la primera entrada real). Schema de ambas collections en
+content.config.ts intacto, sin cambios.
+- Ambas páginas (src/pages/exposiciones.astro, src/pages/encargos.astro)
+  ahora manejan el caso `length === 0`: en vez de listar, muestran un
+  `<div class="empty-state">` centrado (mismo `.container`, texto en
+  `--color-text-muted`, `data-reveal` para heredar el fade-in existente) con
+  una frase breve explicando que la sección todavía no tiene contenido
+  cargado, y un botón `.btn-primary` que abre WhatsApp
+  (vía `whatsappLink()` de site.ts, mismo helper que ya usaban
+  contacto.astro y ObraCard.astro — no se armó el link a mano) con un
+  mensaje pre-cargado distinto por página ("quería consultar sobre las
+  exposiciones" / "quería consultar sobre un encargo"). El resto del
+  componente (grilla/lista, estilos, lógica de `imagen` opcional) no se
+  tocó — la rama `length > 0` es exactamente el JSX que ya existía.
+- Verificado con `npm run build` (6 páginas, sin errores) y grep del texto
+  del estado vacío + de `wa.me` en el `dist/` generado para confirmar que el
+  link de WhatsApp está presente en ambas páginas.
+
 ## Notas de entorno
 - Windows, dev server con `npm run dev` en modo foreground (no usar `astro dev --background` salvo que se pida explícitamente).
 - `npm run dev` en Astro 7 deja un proceso daemon corriendo en segundo plano
