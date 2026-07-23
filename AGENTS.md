@@ -19,7 +19,7 @@ para títulos, sans (Inter) para texto. JavaScript al mínimo indispensable.
 - src/config/site.ts — config global: whatsappNumber, nombre/tagline, socials, email, bio (extracto + párrafos), statement, contactForm (endpoint/accessKey para Web3Forms o Formspree, todavía sin conectar).
 - src/content.config.ts — schemas de las collections "obras", "exposiciones" y "prensa".
 - src/content/obras/*.yaml, src/content/exposiciones/*.yaml, src/content/prensa/*.yaml — una entrada por archivo en cada collection.
-- src/layouts/Layout.astro — layout base: fuentes, Header/Footer, SEO (title/description/canonical) y meta tags Open Graph/Twitter.
+- src/layouts/Layout.astro — layout base: fuentes, Header/Footer, SEO (title/description/canonical), meta tags Open Graph/Twitter y Vercel Web Analytics (`<Analytics />`).
 - src/components/Header.astro — nav sticky con menú hamburguesa en mobile (toggle vía src/scripts/nav.js, sin dependencias).
 - src/components/Footer.astro — redes, email, WhatsApp y copyright.
 - src/components/ObraCard.astro — tarjeta de obra (se usa solo en /galeria, acoplada al lightbox).
@@ -571,6 +571,16 @@ campos. Revertir a `estado: "no_venta"` y borrar la línea `precio` en las 5
 cuando termine el testing, o confirmar con la artista si alguna pasa a la
 venta real (con precio real, no el de prueba). Verificado con `npm run
 build` (6 páginas, sin errores).
+
+Vercel Web Analytics: se agregó la dependencia `@vercel/analytics` y se montó
+el componente `<Analytics />` (import default desde `@vercel/analytics/astro`)
+en src/layouts/Layout.astro, junto a Header/Footer/scripts existentes, así
+que cubre las 6 páginas del sitio sin tocar nada más. El componente solo
+inyecta el script de tracking de Vercel (`/_vercel/insights/script.js`) —
+funciona en producción al desplegar en Vercel; en local/otros hosts el
+script no reporta datos pero no rompe nada. Verificado con `npm run build`
+(6 páginas, sin errores) y grep del script (`va.vercel-scripts`/
+`_vercel/insights`) en el `dist/` generado.
 
 ## Notas de entorno
 - Windows, dev server con `npm run dev` en modo foreground (no usar `astro dev --background` salvo que se pida explícitamente).
