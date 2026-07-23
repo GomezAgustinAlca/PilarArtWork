@@ -1,0 +1,85 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { Image } from 'astro:assets';
+import fotoArtista from '../assets/foto-artista.svg';
+import { siteConfig } from '../config/site';
+---
+
+<Layout title={`Sobre ${siteConfig.artistName}`} description={siteConfig.statement}>
+  <header class="page-header container">
+    <p class="eyebrow">Sobre ella</p>
+    <h1>{siteConfig.artistFullName}</h1>
+  </header>
+
+  <section class="container sobre-layout" data-reveal>
+    <div class="sobre-foto">
+      <Image src={fotoArtista} alt={`Retrato de ${siteConfig.artistFullName}`} width={480} height={600} />
+    </div>
+    <div class="sobre-texto">
+      <h2>Biografía</h2>
+      {siteConfig.bio.parrafos.map((parrafo) => <p>{parrafo}</p>)}
+
+      <h2>Statement de artista</h2>
+      <p class="statement">{siteConfig.statement}</p>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .page-header {
+    padding-block: var(--space-8) var(--space-6);
+  }
+
+  .eyebrow {
+    font-family: var(--font-sans);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wider);
+    font-size: var(--text-xs);
+    color: var(--color-text-subtle);
+    margin-bottom: var(--space-2);
+  }
+
+  .sobre-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-7);
+    padding-block: var(--space-4) var(--space-10);
+  }
+
+  .sobre-foto :global(img) {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+
+  .sobre-texto h2 {
+    font-size: var(--text-xl);
+    margin-top: var(--space-6);
+  }
+
+  .sobre-texto h2:first-child {
+    margin-top: 0;
+  }
+
+  .sobre-texto p {
+    color: var(--color-text-muted);
+  }
+
+  .statement {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: var(--text-lg);
+    color: var(--color-text);
+    line-height: var(--leading-relaxed);
+  }
+
+  @media (min-width: 768px) {
+    .sobre-layout {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+      align-items: start;
+    }
+  }
+</style>

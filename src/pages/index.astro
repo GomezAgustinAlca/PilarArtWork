@@ -1,0 +1,210 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import { siteConfig } from '../config/site';
+import HeroPincelada from '../components/HeroPincelada.astro';
+
+const todasObras = await getCollection('obras');
+const destacadas = todasObras.filter((o) => o.data.destacada).sort((a, b) => b.data.anio - a.data.anio);
+const heroObras = destacadas.length > 0 ? destacadas : todasObras.slice(0, 1);
+const seleccion = destacadas.filter((o) => o.id !== heroObras[0]?.id).slice(0, 3);
+---
+
+<Layout title={`${siteConfig.artistName} — ${siteConfig.tagline}`} description={siteConfig.bio.extracto}>
+  {
+    heroObras.length > 0 && (
+      <section class="hero">
+        <div class="hero-media">
+          <HeroPincelada obras={heroObras} />
+        </div>
+        <div class="hero-info container">
+          <p class="eyebrow">{siteConfig.tagline}</p>
+          <h1>{siteConfig.artistName}</h1>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="/galeria">
+              Ver galería
+            </a>
+            <a class="btn btn-outline" href="/contacto">
+              Contacto
+            </a>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  {
+    seleccion.length > 0 && (
+      <section class="container destacadas" data-reveal>
+        <h2>Obras destacadas</h2>
+        <ul class="destacadas-grid">
+          {seleccion.map((obra) => (
+            <li data-reveal>
+              <a href="/galeria" class="destacada-card">
+                <Image src={obra.data.imagenPrincipal} alt={obra.data.titulo} width={500} height={600} />
+                <p class="destacada-titulo">{obra.data.titulo}</p>
+                <p class="destacada-meta">
+                  {obra.data.anio > 0 ? `${obra.data.anio} · ${obra.data.tecnica}` : obra.data.tecnica}
+                </p>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  <section class="container bio-excerpt" data-reveal>
+    <h2>Sobre {siteConfig.artistName}</h2>
+    <p>{siteConfig.bio.extracto}</p>
+    <a class="btn btn-outline" href="/sobre">
+      Conocer más
+    </a>
+  </section>
+
+  <section class="container home-cta" data-reveal>
+    <div class="home-cta-inner">
+      <h2>¿Te interesa una obra o un encargo?</h2>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="/galeria">
+          Ver galería
+        </a>
+        <a class="btn btn-outline" href="/contacto">
+          Contactar
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <script src="../scripts/hero-carousel.js"></script>
+</Layout>
+
+<style>
+  .hero {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) auto;
+    height: calc(100vh - var(--header-height));
+  }
+
+  .hero-media {
+    background: var(--color-surface);
+    overflow: hidden;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .hero-info {
+    padding-block: var(--space-6) var(--space-8);
+  }
+
+  .eyebrow {
+    font-family: var(--font-sans);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wider);
+    font-size: var(--text-xs);
+    color: var(--color-text-subtle);
+    margin-bottom: var(--space-2);
+  }
+
+  .hero-info h1 {
+    font-size: var(--text-4xl);
+    margin-bottom: var(--space-6);
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+  }
+
+  .destacadas {
+    padding-block: var(--space-9) var(--space-8);
+  }
+
+  .destacadas h2,
+  .bio-excerpt h2,
+  .home-cta h2 {
+    font-size: var(--text-2xl);
+    margin-bottom: var(--space-6);
+  }
+
+  .destacadas-grid {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--space-6);
+  }
+
+  .destacada-card {
+    display: block;
+  }
+
+  .destacada-card :global(img) {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 5 / 6;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    margin-bottom: var(--space-3);
+    transition: transform var(--transition-base);
+  }
+
+  .destacada-card:hover :global(img) {
+    transform: scale(1.02);
+  }
+
+  .destacada-titulo {
+    font-family: var(--font-serif);
+    font-size: var(--text-lg);
+    margin: 0 0 var(--space-1);
+  }
+
+  .destacada-meta {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    margin: 0;
+  }
+
+  .bio-excerpt {
+    max-width: 60ch;
+    padding-block: var(--space-8);
+  }
+
+  .bio-excerpt p {
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-5);
+  }
+
+  .home-cta {
+    padding-block: var(--space-8) var(--space-10);
+  }
+
+  .home-cta-inner {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--space-8);
+    text-align: center;
+  }
+
+  .home-cta .hero-actions {
+    justify-content: center;
+  }
+
+  @media (min-width: 768px) {
+    .hero {
+      grid-template-columns: 1.2fr 1fr;
+      grid-template-rows: 1fr;
+    }
+
+    .hero-info {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-block: 0;
+    }
+  }
+</style>

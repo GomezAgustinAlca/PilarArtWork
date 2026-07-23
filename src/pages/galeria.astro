@@ -1,0 +1,67 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ObraCard from '../components/ObraCard.astro';
+import Filters from '../components/Filters.astro';
+import Lightbox from '../components/Lightbox.astro';
+import { getCollection } from 'astro:content';
+import { siteConfig } from '../config/site';
+
+const obras = (await getCollection('obras')).sort((a, b) => b.data.anio - a.data.anio);
+---
+
+<Layout
+  title={`Galería — ${siteConfig.artistName}`}
+  description={`Portfolio completo de ${siteConfig.artistName}: obras disponibles, vendidas y encargos.`}
+>
+  <header class="page-header container">
+    <p class="eyebrow">Portfolio completo</p>
+    <h1>Galería</h1>
+  </header>
+  <main class="container">
+    <Filters obras={obras} />
+    <ul class="obra-grid" id="obra-grid">
+      {
+        obras.map((obra) => (
+          <li data-reveal>
+            <ObraCard obra={obra} />
+          </li>
+        ))
+      }
+    </ul>
+  </main>
+  <Lightbox />
+  <script src="../scripts/gallery.js"></script>
+</Layout>
+
+<style>
+  .page-header {
+    padding-block: var(--space-8) var(--space-6);
+  }
+
+  .eyebrow {
+    font-family: var(--font-sans);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wider);
+    font-size: var(--text-xs);
+    color: var(--color-text-subtle);
+    margin-bottom: var(--space-2);
+  }
+
+  .obra-grid {
+    list-style: none;
+    padding: 0 0 var(--space-10);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--space-6);
+  }
+
+  .obra-grid li {
+    list-style: none;
+  }
+</style>
+
+<style is:global>
+  body.lightbox-open {
+    overflow: hidden;
+  }
+</style>

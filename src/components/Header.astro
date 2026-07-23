@@ -1,0 +1,201 @@
+---
+import { siteConfig } from '../config/site';
+
+const navItems = [
+  { href: '/', label: 'Inicio' },
+  { href: '/galeria', label: 'Galería' },
+  { href: '/sobre', label: 'Sobre ella' },
+  { href: '/exposiciones', label: 'Exposiciones' },
+  { href: '/encargos', label: 'Encargos y prensa' },
+  { href: '/contacto', label: 'Contacto' },
+];
+
+const currentPath = Astro.url.pathname;
+const isActive = (href: string) => (href === '/' ? currentPath === '/' : currentPath.startsWith(href));
+---
+
+<header class="site-header">
+  <div class="site-header-inner container">
+    <a href="/" class="brand">{siteConfig.artistName}</a>
+
+    <button type="button" class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="site-nav">
+      <span class="sr-only">Abrir menú</span>
+      <span class="nav-toggle-icon" aria-hidden="true"></span>
+    </button>
+
+    <nav class="site-nav" id="site-nav" aria-label="Principal">
+      <ul>
+        {
+          navItems.map((item) => (
+            <li>
+              <a href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<style>
+  /*
+    Alto real del header (padding-block + contenido), medido con Playwright:
+    ~69px en mobile (con botón hamburguesa) y ~62px en desktop. Lo usa el hero
+    de la home para no exceder el alto de la ventana (calc(100vh - header)).
+  */
+  :global(:root) {
+    --header-height: 4.5rem;
+  }
+
+  @media (min-width: 768px) {
+    :global(:root) {
+      --header-height: 4rem;
+    }
+  }
+
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .site-header-inner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-block: var(--space-4);
+  }
+
+  .brand {
+    font-family: var(--font-serif);
+    font-size: var(--text-lg);
+    color: var(--color-text);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .nav-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: none;
+    background: none;
+    cursor: pointer;
+  }
+
+  .nav-toggle-icon,
+  .nav-toggle-icon::before,
+  .nav-toggle-icon::after {
+    display: block;
+    width: 1.25rem;
+    height: 2px;
+    background: var(--color-text);
+    transition: transform var(--transition-fast), opacity var(--transition-fast);
+  }
+
+  .nav-toggle-icon::before,
+  .nav-toggle-icon::after {
+    content: '';
+    position: relative;
+  }
+
+  .nav-toggle-icon::before {
+    top: -6px;
+  }
+
+  .nav-toggle-icon::after {
+    top: 4px;
+  }
+
+  .nav-toggle.is-open .nav-toggle-icon {
+    background: transparent;
+  }
+
+  .nav-toggle.is-open .nav-toggle-icon::before {
+    top: 0;
+    transform: rotate(45deg);
+  }
+
+  .nav-toggle.is-open .nav-toggle-icon::after {
+    top: -2px;
+    transform: rotate(-45deg);
+  }
+
+  .site-nav ul {
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+    list-style: none;
+  }
+
+  .site-nav a {
+    position: relative;
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    transition: color var(--transition-fast);
+  }
+
+  .site-nav a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -3px;
+    height: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transition: transform var(--transition-fast);
+  }
+
+  .site-nav a:hover {
+    color: var(--color-text);
+  }
+
+  .site-nav a:hover::after,
+  .site-nav a:focus-visible::after {
+    transform: scaleX(1);
+  }
+
+  .site-nav a[aria-current='page'] {
+    color: var(--color-accent-hover);
+  }
+
+  .site-nav a[aria-current='page']::after {
+    transform: scaleX(1);
+  }
+
+  @media (max-width: 767px) {
+    .nav-toggle {
+      display: inline-flex;
+    }
+
+    .site-nav {
+      position: absolute;
+      inset-inline: 0;
+      top: 100%;
+      max-height: 0;
+      overflow: hidden;
+      background: var(--color-bg-elevated);
+      border-bottom: 1px solid var(--color-border);
+      transition: max-height var(--transition-base);
+    }
+
+    .site-nav.is-open {
+      max-height: 24rem;
+    }
+
+    .site-nav ul {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-4);
+      padding: var(--space-5);
+    }
+  }
+</style>

@@ -1,0 +1,8 @@
+titulo: "Sin nombre"
+anio: 0 # PENDIENTE - confirmar año con la artista
+tecnica: "PENDIENTE"
+estado: "no_venta"
+imagenPrincipal: "./images/sin-nombre.jpg"
+imagenesDetalle: []
+descripcion: "PENDIENTE"
+destacada: false

@@ -1,0 +1,139 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import { siteConfig } from '../config/site';
+
+const prensa = (await getCollection('prensa')).sort((a, b) => b.data.anio - a.data.anio);
+---
+
+<Layout
+  title={`Encargos y prensa — ${siteConfig.artistName}`}
+  description={`Ilustraciones para cortometrajes, apariciones en cine y colaboraciones de ${siteConfig.artistName}.`}
+>
+  <header class="page-header container">
+    <p class="eyebrow">Trabajo por encargo</p>
+    <h1>Encargos y prensa</h1>
+  </header>
+
+  <ul class="container prensa-list">
+    {
+      prensa.map((item) => (
+        <li class="prensa-item" data-reveal>
+          <div class={`prensa-media ${!item.data.imagen ? 'prensa-media--placeholder' : ''}`}>
+            {item.data.imagen ? (
+              <Image src={item.data.imagen} alt={item.data.titulo} width={360} height={240} />
+            ) : (
+              <span class="prensa-media-tipo">{item.data.tipo}</span>
+            )}
+          </div>
+          <div class="prensa-info">
+            <p class="prensa-meta">
+              {item.data.tipo} · {item.data.anio}
+            </p>
+            <h2>{item.data.titulo}</h2>
+            <p class="prensa-desc">{item.data.descripcion}</p>
+            {item.data.link && (
+              <a class="prensa-link" href={item.data.link} target="_blank" rel="noopener noreferrer">
+                Ver más →
+              </a>
+            )}
+          </div>
+        </li>
+      ))
+    }
+  </ul>
+</Layout>
+
+<style>
+  .page-header {
+    padding-block: var(--space-8) var(--space-6);
+  }
+
+  .eyebrow {
+    font-family: var(--font-sans);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wider);
+    font-size: var(--text-xs);
+    color: var(--color-text-subtle);
+    margin-bottom: var(--space-2);
+  }
+
+  .prensa-list {
+    list-style: none;
+    padding: 0 0 var(--space-10);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-6);
+  }
+
+  .prensa-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .prensa-media {
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: var(--color-surface);
+  }
+
+  .prensa-media :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .prensa-media--placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-4);
+    text-align: center;
+    border: 1px solid var(--color-border);
+  }
+
+  .prensa-media-tipo {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wide);
+    color: var(--color-text-subtle);
+  }
+
+  .prensa-meta {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wide);
+    color: var(--color-text-subtle);
+    margin: 0;
+  }
+
+  .prensa-info h2 {
+    font-size: var(--text-lg);
+    margin: var(--space-1) 0;
+  }
+
+  .prensa-desc {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    margin: 0 0 var(--space-2);
+  }
+
+  .prensa-link {
+    font-size: var(--text-sm);
+    color: var(--color-accent-hover);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    align-self: flex-start;
+  }
+
+  .prensa-link:hover {
+    color: var(--color-accent);
+  }
+</style>

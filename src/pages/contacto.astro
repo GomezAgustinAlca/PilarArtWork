@@ -1,0 +1,222 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { siteConfig, whatsappLink } from '../config/site';
+
+const { endpoint, accessKey } = siteConfig.contactForm;
+---
+
+<Layout
+  title={`Contacto — ${siteConfig.artistName}`}
+  description={`Escribile a ${siteConfig.artistName} por consultas, encargos o compra de obras.`}
+>
+  <header class="page-header container">
+    <p class="eyebrow">Hablemos</p>
+    <h1>Contacto</h1>
+  </header>
+
+  <section class="container contacto-layout" data-reveal>
+    <form id="contacto-form" class="contacto-form" action={endpoint || ''} method="POST" novalidate>
+      {accessKey && <input type="hidden" name="access_key" value={accessKey} />}
+      <input type="hidden" name="subject" value="Nuevo mensaje desde el sitio" />
+      <input type="text" name="botcheck" class="botcheck" tabindex="-1" autocomplete="off" aria-hidden="true" />
+
+      <div class="form-field">
+        <label for="nombre">Nombre</label>
+        <input type="text" id="nombre" name="nombre" required />
+      </div>
+
+      <div class="form-field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required />
+      </div>
+
+      <div class="form-field">
+        <label for="asunto">Asunto</label>
+        <select id="asunto" name="asunto" required>
+          <option value="">Elegí una opción</option>
+          <option value="Consulta sobre una obra">Consulta sobre una obra</option>
+          <option value="Encargo">Encargo</option>
+          <option value="Exposición / colaboración">Exposición / colaboración</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+
+      <div class="form-field">
+        <label for="mensaje">Mensaje</label>
+        <textarea id="mensaje" name="mensaje" rows="5" required></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Enviar mensaje</button>
+      <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
+    </form>
+
+    <aside class="contacto-directo">
+      <h2>Contacto directo</h2>
+      <a
+        class="btn btn-primary"
+        href={whatsappLink('Hola! Quería hacerte una consulta.')}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Escribir por WhatsApp
+      </a>
+      <ul class="contacto-redes">
+        <li><a href={`mailto:${siteConfig.email}`}>{siteConfig.email}</a></li>
+        {
+          siteConfig.socials.instagram && (
+            <li>
+              <a href={siteConfig.socials.instagram} target="_blank" rel="noopener noreferrer">
+                Instagram
+              </a>
+            </li>
+          )
+        }
+        {
+          siteConfig.socials.facebook && (
+            <li>
+              <a href={siteConfig.socials.facebook} target="_blank" rel="noopener noreferrer">
+                Facebook
+              </a>
+            </li>
+          )
+        }
+      </ul>
+    </aside>
+  </section>
+
+  <script src="../scripts/contact-form.js"></script>
+</Layout>
+
+<style>
+  .page-header {
+    padding-block: var(--space-8) var(--space-6);
+  }
+
+  .eyebrow {
+    font-family: var(--font-sans);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wider);
+    font-size: var(--text-xs);
+    color: var(--color-text-subtle);
+    margin-bottom: var(--space-2);
+  }
+
+  .contacto-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-8);
+    padding-block: var(--space-4) var(--space-10);
+  }
+
+  .contacto-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+
+  .botcheck {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+  }
+
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .form-field label {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wide);
+    color: var(--color-text-subtle);
+  }
+
+  .form-field input,
+  .form-field textarea {
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    color: var(--color-text);
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: var(--space-3);
+    resize: vertical;
+  }
+
+  .form-field input:focus-visible,
+  .form-field textarea:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
+  }
+
+  .contacto-form .btn {
+    align-self: start;
+  }
+
+  .contacto-form .btn[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .form-status {
+    font-size: var(--text-sm);
+    margin: 0;
+    min-height: 1.2em;
+  }
+
+  .form-status[data-state='sending'] {
+    color: var(--color-text-muted);
+  }
+
+  .form-status[data-state='success'] {
+    color: var(--color-accent-hover);
+  }
+
+  .form-status[data-state='error'] {
+    color: var(--color-error);
+  }
+
+  .contacto-directo {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    gap: var(--space-5);
+    padding: var(--space-6);
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    height: fit-content;
+  }
+
+  .contacto-directo h2 {
+    font-size: var(--text-xl);
+    margin: 0;
+  }
+
+  .contacto-redes {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .contacto-redes a {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .contacto-redes a:hover {
+    color: var(--color-accent-hover);
+  }
+
+  @media (min-width: 768px) {
+    .contacto-layout {
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      align-items: start;
+    }
+  }
+</style>

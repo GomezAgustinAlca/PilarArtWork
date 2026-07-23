@@ -1,0 +1,155 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { Image, getImage } from 'astro:assets';
+import { whatsappLinkParaObra } from '../config/site';
+
+interface Props {
+  obra: CollectionEntry<'obras'>;
+}
+
+const { obra } = Astro.props;
+const { titulo, anio, tecnica, dimensiones, serie, estado, precio, imagenPrincipal, imagenesDetalle, descripcion, destacada } =
+  obra.data;
+
+const estadoLabel: Record<typeof estado, string> = {
+  disponible: 'Disponible',
+  vendida: 'Vendida',
+  no_venta: 'No disponible',
+};
+
+const precioFormateado = precio != null ? `$ ${new Intl.NumberFormat('es-AR').format(precio)}` : null;
+
+const imagenesFuente = [imagenPrincipal, ...imagenesDetalle];
+const imagenesLightbox = await Promise.all(
+  imagenesFuente.map(async (img, i) => {
+    // Solo `width`: sin `height` fijo, Astro preserva la proporción real de
+    // cada imagen (evita el crop forzado que aplicaba antes con width+height,
+    // pensado para la card, no para mostrar la obra completa en el lightbox).
+    const optimizada = await getImage({ src: img, width: 1600 });
+    return {
+      src: optimizada.src,
+      width: optimizada.attributes.width,
+      height: optimizada.attributes.height,
+      alt: i === 0 ? titulo : `${titulo} — detalle ${i}`,
+    };
+  })
+);
+---
+
+<article
+  class="obra-card"
+  data-obra-id={obra.id}
+  data-serie={serie ?? ''}
+  data-tecnica={tecnica}
+  data-anio={anio}
+  data-estado={estado}
+  data-titulo={titulo}
+  data-dimensiones={dimensiones}
+  data-descripcion={descripcion}
+  data-precio-formateado={precioFormateado ?? ''}
+  data-whatsapp={whatsappLinkParaObra(titulo)}
+  data-imagenes={JSON.stringify(imagenesLightbox)}
+  tabindex="0"
+  role="button"
+  aria-haspopup="dialog"
+>
+  <div class="obra-media">
+    <Image src={imagenPrincipal} alt={titulo} width={600} height={720} loading="lazy" />
+    {destacada && <span class="badge badge-destacada">Destacada</span>}
+    <span class={`badge badge-estado badge-estado--${estado}`}>{estadoLabel[estado]}</span>
+  </div>
+  <div class="obra-info">
+    <h2>{titulo}</h2>
+    <p class="obra-meta">{anio > 0 ? `${anio} · ${tecnica}` : tecnica}</p>
+    {dimensiones && <p class="obra-meta">{dimensiones}</p>}
+    {estado === 'disponible' && precioFormateado && <p class="obra-price">{precioFormateado}</p>}
+  </div>
+</article>
+
+<style>
+  .obra-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    cursor: pointer;
+  }
+
+  .obra-card:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 4px;
+    border-radius: var(--radius-md);
+  }
+
+  .obra-media {
+    position: relative;
+    background: var(--color-surface);
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow var(--transition-base), transform var(--transition-base);
+  }
+
+  .obra-media img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 5 / 6;
+    object-fit: cover;
+    transition: transform var(--transition-base);
+  }
+
+  .obra-card:hover .obra-media,
+  .obra-card:focus-visible .obra-media {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-3px);
+  }
+
+  .obra-card:hover .obra-media img,
+  .obra-card:focus-visible .obra-media img {
+    transform: scale(1.03);
+  }
+
+  .badge {
+    position: absolute;
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-elevated);
+  }
+
+  .badge-destacada {
+    top: var(--space-3);
+    left: var(--space-3);
+    background: var(--color-accent);
+    color: var(--color-bg-elevated);
+  }
+
+  .badge-estado {
+    top: var(--space-3);
+    right: var(--space-3);
+    color: var(--color-text-muted);
+  }
+
+  .badge-estado--disponible {
+    color: var(--color-accent-hover);
+  }
+
+  .obra-info h2 {
+    font-size: var(--text-xl);
+    margin-bottom: var(--space-1);
+  }
+
+  .obra-meta {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    margin: 0;
+  }
+
+  .obra-price {
+    font-size: var(--text-sm);
+    color: var(--color-text);
+    margin: var(--space-2) 0 0;
+  }
+</style>

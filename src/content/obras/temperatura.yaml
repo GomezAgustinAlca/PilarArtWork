@@ -1,0 +1,8 @@
+titulo: "Temperatura"
+anio: 0 # PENDIENTE - confirmar año con la artista
+tecnica: "PENDIENTE"
+estado: "no_venta"
+imagenPrincipal: "./images/temperatura.jpg"
+imagenesDetalle: []
+descripcion: "PENDIENTE"
+destacada: false

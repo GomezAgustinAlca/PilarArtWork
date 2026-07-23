@@ -1,0 +1,15 @@
+# SUPUESTO A CONFIRMAR: batalla-en-el-jardin-1.jpg y batalla-en-el-jardin-2.jpg
+# parecen ser dos mitades de una misma obra, y copia-de-sin-titulo-18-de-marzo-
+# de-2025-22-12-25.jpg parece mostrarla completa. Se unificaron en una sola
+# entrada (la completa como imagenPrincipal, las dos mitades como
+# imagenesDetalle). Confirmar con la artista.
+titulo: "Batalla en el jardín"
+anio: 0 # PENDIENTE - confirmar año con la artista
+tecnica: "PENDIENTE"
+estado: "no_venta"
+imagenPrincipal: "./images/copia-de-sin-titulo-18-de-marzo-de-2025-22-12-25.jpg"
+imagenesDetalle:
+  - "./images/batalla-en-el-jardin-1.jpg"
+  - "./images/batalla-en-el-jardin-2.jpg"
+descripcion: "PENDIENTE"
+destacada: false

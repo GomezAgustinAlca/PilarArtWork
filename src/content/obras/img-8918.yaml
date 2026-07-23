@@ -1,0 +1,10 @@
+# Título derivado mecánicamente del nombre de archivo (img-8918.jpg parece un
+# nombre de cámara/exportación, no un título real) - confirmar título con la artista.
+titulo: "Img 8918"
+anio: 0 # PENDIENTE - confirmar año con la artista
+tecnica: "PENDIENTE"
+estado: "no_venta"
+imagenPrincipal: "./images/img-8918.jpg"
+imagenesDetalle: []
+descripcion: "PENDIENTE"
+destacada: true

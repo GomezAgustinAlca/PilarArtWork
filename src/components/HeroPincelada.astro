@@ -1,0 +1,279 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { Image } from 'astro:assets';
+
+interface Props {
+  obras: CollectionEntry<'obras'>[];
+}
+
+const { obras } = Astro.props;
+---
+
+{
+  obras.length > 0 && (
+    <div class="hero-carousel" id="hero-carousel">
+      {obras.map((obra, i) => (
+        <figure class={`hero-slide ${i === 0 ? 'is-active' : ''}`} data-index={i} data-titulo={obra.data.titulo}>
+          <Image
+            src={obra.data.imagenPrincipal}
+            alt={obra.data.titulo}
+            width={900}
+            height={1080}
+            loading={i === 0 ? 'eager' : 'lazy'}
+            fetchpriority={i === 0 ? 'high' : 'auto'}
+          />
+          <div class="hero-slide-scrim" aria-hidden="true" />
+          <figcaption class="hero-slide-caption">
+            {obra.data.titulo}
+            {obra.data.anio > 0 && `, ${obra.data.anio}`}
+          </figcaption>
+        </figure>
+      ))}
+
+      {obras.length > 1 && (
+        <div class="hero-controls" id="hero-controls" hidden>
+          <button type="button" class="hero-playpause" id="hero-playpause" aria-pressed="false">
+            <span class="sr-only">Pausar rotación de obras</span>
+            <span class="icon-pause" aria-hidden="true" />
+          </button>
+          <div class="hero-dots" role="tablist" aria-label="Obras destacadas">
+            {obras.map((obra, i) => (
+              <button
+                type="button"
+                class={`hero-dot ${i === 0 ? 'is-active' : ''}`}
+                data-goto={i}
+                role="tab"
+                aria-selected={i === 0 ? 'true' : 'false'}
+                aria-label={`Ver ${obra.data.titulo}`}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      <p class="sr-only" id="hero-status" role="status" aria-live="polite" />
+    </div>
+  )
+}
+
+<style>
+  .hero-carousel {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: var(--color-surface);
+    overflow: hidden;
+  }
+
+  .hero-slide {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    margin: 0;
+  }
+
+  .hero-slide.is-active {
+    z-index: 2;
+  }
+
+  .hero-slide :global(img) {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    object-fit: contain;
+    display: block;
+  }
+
+  /*
+    Degradé oscuro sutil (no una caja sólida) para garantizar contraste del
+    texto claro de la leyenda sin importar qué tan clara u oscura sea la zona
+    de la obra que queda debajo. Cubre solo la franja inferior de la imagen;
+    el resto de la obra queda intacto.
+  */
+  .hero-slide-scrim {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 45%;
+    background: linear-gradient(
+      to top,
+      rgba(20, 16, 14, 0.68) 0%,
+      rgba(20, 16, 14, 0.32) 45%,
+      rgba(20, 16, 14, 0) 100%
+    );
+    pointer-events: none;
+  }
+
+  .hero-slide-caption {
+    position: absolute;
+    left: var(--space-5);
+    bottom: var(--space-5);
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: var(--text-lg);
+    color: var(--color-bg-elevated);
+    text-shadow: 0 1px 8px rgba(43, 39, 36, 0.45);
+    margin: 0;
+  }
+
+  @media (min-width: 768px) {
+    .hero-slide-caption {
+      left: var(--space-7);
+    }
+  }
+
+  /*
+    Todas las capas no-activas quedan tapadas por la máscara de pincelada por
+    defecto (mask-position 150% = oculta). El valor arranca fijo en el estado
+    "oculto" ANTES de que is-incoming introduzca la transición: si el cambio
+    de valor y la aparición de `transition` pasaran en la misma clase, el
+    propio salto a "oculta" ya dispararía (y cortaría) la animación un frame
+    después, cuando is-revealed la manda de nuevo a 0% — dando un salto
+    instantáneo en vez de un barrido. Por eso el valor va en la regla base y
+    `transition` se agrega recién en .is-incoming, sin tocar el valor.
+  */
+  .hero-slide {
+    mask-image: url('/brush-mask.svg');
+    -webkit-mask-image: url('/brush-mask.svg');
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    mask-size: 250% 100%;
+    -webkit-mask-size: 250% 100%;
+    mask-position: 150% 0%;
+    -webkit-mask-position: 150% 0%;
+  }
+
+  .hero-slide.is-active {
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+
+  .hero-slide.is-incoming {
+    z-index: 3;
+    transition:
+      mask-position var(--transition-slow),
+      -webkit-mask-position var(--transition-slow);
+  }
+
+  .hero-slide.is-incoming.is-revealed {
+    mask-position: 0% 0%;
+    -webkit-mask-position: 0% 0%;
+  }
+
+  /* Fallback: si el navegador no soporta mask-image, crossfade simple. */
+  @supports not ((mask-image: url('#')) or (-webkit-mask-image: url('#'))) {
+    .hero-slide {
+      mask-image: none;
+      -webkit-mask-image: none;
+      opacity: 0;
+    }
+
+    .hero-slide.is-active {
+      opacity: 1;
+    }
+
+    .hero-slide.is-incoming {
+      transition: opacity var(--transition-slow);
+    }
+
+    .hero-slide.is-incoming.is-revealed {
+      opacity: 1;
+    }
+  }
+
+  .hero-controls {
+    position: absolute;
+    z-index: 4;
+    right: var(--space-4);
+    bottom: var(--space-4);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .hero-controls[hidden] {
+    display: none;
+  }
+
+  .hero-playpause {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    border: none;
+    background: rgba(43, 39, 36, 0.45);
+    color: var(--color-bg-elevated);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+  }
+
+  .hero-playpause:hover {
+    background: rgba(43, 39, 36, 0.65);
+  }
+
+  .icon-pause {
+    display: block;
+    width: 0.6rem;
+    height: 0.6rem;
+    position: relative;
+  }
+
+  .icon-pause::before,
+  .icon-pause::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    width: 2px;
+    height: 0.6rem;
+    background: currentColor;
+  }
+
+  .icon-pause::before {
+    left: 1px;
+  }
+
+  .icon-pause::after {
+    right: 1px;
+  }
+
+  .hero-playpause[aria-pressed='true'] .icon-pause {
+    width: 0;
+    height: 0;
+    border-left: 0.4rem solid currentColor;
+    border-top: 0.35rem solid transparent;
+    border-bottom: 0.35rem solid transparent;
+  }
+
+  .hero-playpause[aria-pressed='true'] .icon-pause::before,
+  .hero-playpause[aria-pressed='true'] .icon-pause::after {
+    display: none;
+  }
+
+  .hero-dots {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .hero-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    border: none;
+    padding: 0;
+    background: rgba(250, 248, 245, 0.5);
+    cursor: pointer;
+    transition: background var(--transition-fast), transform var(--transition-fast);
+  }
+
+  .hero-dot:hover {
+    background: rgba(250, 248, 245, 0.8);
+  }
+
+  .hero-dot.is-active {
+    background: var(--color-bg-elevated);
+    transform: scale(1.3);
+  }
+</style>
