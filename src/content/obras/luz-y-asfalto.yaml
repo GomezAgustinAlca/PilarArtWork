@@ -1,7 +1,8 @@
 titulo: "Luz y asfalto"
 anio: 0 # PENDIENTE - confirmar año con la artista
 tecnica: "PENDIENTE"
-estado: "no_venta"
+estado: "disponible" # TEMPORAL — DATOS DE PRUEBA
+precio: 60000 # TEMPORAL — DATOS DE PRUEBA
 imagenPrincipal: "./images/luz-y-asfalto.jpg"
 imagenesDetalle: []
 descripcion: "PENDIENTE"

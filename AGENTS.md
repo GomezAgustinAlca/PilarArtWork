@@ -547,6 +547,31 @@ número nuevo automáticamente. Verificado con `npm run build` (6 páginas, sin
 errores) y grep del número en el `dist/` generado, presente en las 6
 páginas.
 
+### 5 obras con datos de venta de prueba — PENDIENTE revertir o confirmar
+
+Para testear el flujo de compra en producción (con el WhatsApp real de la
+artista) se pusieron 5 obras variadas en `estado: "disponible"` con
+`precio` de prueba, elegidas por proporción (vertical, apaisada, y el
+díptico) para cubrir distintos layouts del lightbox/card. Ambas líneas
+(`estado` y `precio`) están marcadas `# TEMPORAL — DATOS DE PRUEBA` en cada
+.yaml para poder encontrarlas y revertirlas fácil.
+
+1. `batalla-en-el-jardin.yaml` ("Batalla en el jardín", díptico apaisado) —
+   precio 45000
+2. `luz-y-asfalto.yaml` ("Luz y asfalto", vertical) — precio 60000
+3. `img-8918.yaml` ("Img 8918", apaisada) — precio 80000
+4. `paisaje.yaml` ("Paisaje", vertical) — precio 120000
+5. `captando-el-movimiento-de-una-ciudad-dinamica.yaml` ("Captando el
+   movimiento de una ciudad dinámica", cuadrada) — precio 150000
+
+Estas 5 obras siguen teniendo `anio`/`tecnica`/`descripcion` en PENDIENTE
+(ver sección "Obras cargadas — pendientes a confirmar con la artista" más
+arriba) — el cambio de esta ronda tocó solo `estado`/`precio`, no esos
+campos. Revertir a `estado: "no_venta"` y borrar la línea `precio` en las 5
+cuando termine el testing, o confirmar con la artista si alguna pasa a la
+venta real (con precio real, no el de prueba). Verificado con `npm run
+build` (6 páginas, sin errores).
+
 ## Notas de entorno
 - Windows, dev server con `npm run dev` en modo foreground (no usar `astro dev --background` salvo que se pida explícitamente).
 - `npm run dev` en Astro 7 deja un proceso daemon corriendo en segundo plano

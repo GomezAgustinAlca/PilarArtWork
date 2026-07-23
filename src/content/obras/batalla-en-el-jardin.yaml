@@ -6,7 +6,8 @@
 titulo: "Batalla en el jardín"
 anio: 0 # PENDIENTE - confirmar año con la artista
 tecnica: "PENDIENTE"
-estado: "no_venta"
+estado: "disponible" # TEMPORAL — DATOS DE PRUEBA
+precio: 45000 # TEMPORAL — DATOS DE PRUEBA
 imagenPrincipal: "./images/copia-de-sin-titulo-18-de-marzo-de-2025-22-12-25.jpg"
 imagenesDetalle:
   - "./images/batalla-en-el-jardin-1.jpg"
