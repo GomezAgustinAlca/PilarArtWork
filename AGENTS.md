@@ -27,8 +27,11 @@ para títulos, sans (Inter) para texto. JavaScript al mínimo indispensable.
 - src/components/Lightbox.astro — overlay con zoom y miniaturas, uno por obra.
 - src/scripts/gallery.js — JS de filtros + lightbox (delegación de eventos, mínimo).
 - src/scripts/nav.js — JS del menú hamburguesa (toggle de clase + aria-expanded).
+- src/scripts/about-video.js — pausa/desactiva el autoplay del video de /sobre si `prefers-reduced-motion`.
 - src/content/obras/images/, src/content/exposiciones/images/, src/content/prensa/images/ — imágenes de cada collection (vía helper `image()`, no en public/).
-- src/assets/foto-artista.svg — foto de la artista para /sobre (placeholder), importada directamente con `astro:assets` (no es parte de una collection).
+- src/assets/pilar-gomez-retrato.jpg — retrato real de la artista (foto de una exposición), usado en /sobre y como imagen default de Open Graph (Layout.astro). Importado directo con `astro:assets` (no es una obra ni pertenece a una collection). src/assets/foto-artista.svg (placeholder anterior) quedó sin uso, no se borró.
+- src/assets/exposicion.jpg — foto de obras colgadas en una muestra, usada al final de /sobre.
+- public/video/ — video de la artista pintando en el taller (pilar-pintando.mp4/.webm + poster), usado en /sobre. No pasa por `astro:assets` (es un `<video>` nativo, no una imagen).
 - src/pages/index.astro — home (hero con obra destacada, selección de destacadas, extracto de bio, accesos).
 - src/pages/galeria.astro — galería completa con filtros y lightbox (antes vivía en index.astro).
 - src/pages/sobre.astro, src/pages/exposiciones.astro, src/pages/encargos.astro, src/pages/contacto.astro — resto de las páginas del sitio.
@@ -581,6 +584,169 @@ funciona en producción al desplegar en Vercel; en local/otros hosts el
 script no reporta datos pero no rompe nada. Verificado con `npm run build`
 (6 páginas, sin errores) y grep del script (`va.vercel-scripts`/
 `_vercel/insights`) en el `dist/` generado.
+
+Reorganización de /sobre (retrato real, video y foto de exposición) +
+imagen default de Open Graph: sobre.astro pasó de un único bloque de foto+bio
+a una secuencia de 3 (retrato+bio+statement arriba, video en el taller en
+medio, foto de exposición al final — mismo orden en mobile a una sola
+columna), y la foto placeholder se reemplazó por un retrato real.
+- Conversión de foto: works/Pilargomez.PNG (foto de la artista en una
+  exposición, junto a sus cuadros) convertida a
+  src/assets/pilar-gomez-retrato.jpg con Pillow (mismo criterio que las
+  conversiones anteriores: JPG calidad 95, orientación EXIF corregida vía
+  `ImageOps.exif_transpose` — no-op en este caso porque el `Orientation` EXIF
+  ya era 1 —, máx. 3000px de lado largo — no hizo falta reescalar, la fuente
+  ya era 1170×2532). El PNG original en works/ no se tocó.
+- /sobre: import de `fotoArtista` cambiado de src/assets/foto-artista.svg a
+  src/assets/pilar-gomez-retrato.jpg, sin tocar el resto del componente
+  `<Image>` (mismo width/height 480×600, mismo `object-fit: cover` en
+  `.sobre-foto img`). El recorte por default (cover, centrado) queda bien con
+  esta foto en particular porque el sujeto ocupa el margen derecho de un
+  encuadre vertical angosto (1170×2532): el recorte vertical centrado no
+  toca los bordes horizontales y conserva cara + torso + el cuadro de la
+  artista en la pared. Los bloques de video (src/scripts/about-video.js,
+  poster/mp4/webm en public/video/) y de foto de exposición
+  (src/assets/exposicion.jpg) ya existían sin documentar en esta sección —
+  quedan documentados acá por primera vez, no son parte de este cambio.
+- Imagen default de Open Graph: Layout.astro ahora genera con `getImage()`
+  (astro:assets) un recorte fijo de `pilar-gomez-retrato.jpg` a 1200×630
+  (`format: 'jpg'` explícito — no dejar el default `webp` de Astro, para
+  máxima compatibilidad con crawlers de redes/mensajería que aún no
+  soportan bien webp en previews) y lo usa como fallback de `ogImage` cuando
+  la página no pasa uno propio (ninguna página lo hace todavía, así que hoy
+  las 6 páginas heredan este retrato). El recorte centrado por default de
+  `getImage` también cae bien acá: a un ratio 1.91:1 conserva cara, cuadro en
+  la pared y el cartel con el nombre de la artista (verificado generando el
+  crop con Pillow antes de tocar código, para no depender de rebuilds).
+- Verificado con `npm run build` (6 páginas, sin errores), grep de
+  `og:image` en el `dist/` generado (las 6 páginas apuntan al mismo
+  `pilar-gomez-retrato*.jpg`) y con Playwright (instalado ad-hoc sobre
+  `npm run dev`, no es dependencia del proyecto — se desinstaló al
+  terminar): screenshots desktop y mobile de /sobre con scroll-through
+  completo antes de capturar (necesario porque el fade-in de `[data-reveal]`
+  depende de `IntersectionObserver`, que no dispara si el viewport nunca
+  se desplaza durante una captura `fullPage`) confirmando la secuencia
+  retrato/bio/statement → video → foto de exposición sin solapamientos, con
+  aire entre bloques, y el mismo orden en una sola columna en mobile. Sin
+  errores de consola.
+
+Fix del autoplay del hero (post-Bloque 4): el carrusel a veces no avanzaba
+nunca, o tardaba en arrancar. Causa raíz en src/scripts/hero-carousel.js: la
+pausa por hover (`mouseenter`/`mouseleave` sobre `#hero-carousel`) se
+disparaba en algunos navegadores por un recálculo de hit-test cuando el
+layout se corre bajo un cursor ya posicionado ahí al cargar la página (sin
+movimiento real del mouse) — típico si el usuario llega a la home con el
+cursor ya sobre la mitad superior de la pantalla, donde vive el hero. Eso
+paraba el autoplay para siempre en el peor caso, sin que el usuario tocara
+nada. `startAutoplay()` en sí no dependía de que la imagen terminara de
+cargar (esa sospecha no aplicaba al código tal cual estaba), así que no
+hizo falta tocar nada ahí.
+- Se sacó por completo la pausa por hover (`carousel.addEventListener('mouseenter'
+  /'mouseleave', ...)`); el control de pausa queda solo en el botón de
+  play/pausa (`#hero-playpause`), ya existente. Elimina la clase de bug
+  entera en vez de intentar distinguir "hover real" de "hover sintético".
+- Intervalo de autoplay (`AUTOPLAY_MS`) bajado de 6000 a 5000ms.
+- El ciclo sigue arrancando siempre al cargar (salvo `prefers-reduced-motion`
+  o pausa manual vía el botón), sin cambios en esa lógica — ya era así.
+- Verificado con `npm run build` (6 páginas, sin errores) y con Playwright
+  (instalado ad-hoc, no es dependencia del proyecto — se desinstaló al
+  terminar): 4 casos contra `npm run dev` — carga con el cursor ya
+  posicionado sobre el hero (antes se quedaba trabado, ahora avanza a los
+  5s), carga con el cursor lejos del hero (avanza igual), pausa/reanudar con
+  el botón (se detiene y retoma correctamente) + click en los dots mientras
+  está pausado (navega al slide correcto), y `reducedMotion: 'reduce'` (sin
+  autoplay). Sin errores de consola.
+
+Zoom del lightbox centrado en el cursor + pan + pinch (post-fix de autoplay):
+el zoom del lightbox ampliaba siempre desde el centro de la obra; ahora el
+usuario elige qué zona ver. Cambios en src/components/Lightbox.astro y
+src/scripts/gallery.js, sin tocar tokens.css.
+- Zoom hacia el punto del cursor: al hacer click sobre la imagen (no
+  zoomeada), `setZoomOrigin()` calcula la posición del click como % relativo
+  al bounding box de la imagen (sin transformar) y lo aplica como
+  `transform-origin` inline antes de escalar (`applyZoom(2.5)`, vía
+  `imageEl.style.transform = 'scale(2.5)'`). El punto clickeado queda fijo y
+  el resto crece a su alrededor. Reemplaza la clase CSS `.lightbox-image.zoomed
+  { transform: scale(2) }` de antes (ahora solo pone `cursor: zoom-out`, el
+  valor real del transform lo pone JS).
+- Recorrido de la obra ampliada siguiendo el cursor (no arrastre en
+  desktop): mientras está zoomeada, cada `mousemove` sobre la imagen vuelve
+  a llamar `setZoomOrigin()` con la posición actual del mouse — es la misma
+  técnica que el "hover zoom" típico de fichas de producto (mover el mouse
+  cambia el `transform-origin`, no hace falta animar una traslación por
+  separado). Matemáticamente, escalar un elemento desde cualquier punto de
+  origen dentro de su propio bounding box SIEMPRE produce una caja
+  resultante que contiene la caja original (crece hacia ambos lados de ese
+  punto), así que no puede aparecer un borde vacío dentro del área de la
+  obra sin necesidad de clampear la traslación — solo se clampea el propio
+  % de origen a 0–100 por las dudas. El letterboxing pre-existente por
+  `object-fit: contain` (obras que no comparten proporción con el stage) no
+  cambia con el zoom, no es un bug nuevo.
+- Bug no obvio (ya evitado): el % de `transform-origin` se resuelve siempre
+  contra el layout box SIN transformar, no contra el tamaño ya escalado en
+  pantalla. Si `setZoomOrigin()` hubiera vuelto a leer
+  `getBoundingClientRect()` en cada `mousemove` mientras la imagen ya está
+  escalada, el rect leído sería el agrandado (post-`scale()`) y el cálculo
+  de % quedaría corrido — un feedback loop donde el punto seguido por el
+  cursor "corre" en vez de quedarse fijo. Se resolvió cacheando ese rect una
+  sola vez por sesión de zoom (`baseRect`, capturado en `applyZoom()` justo
+  en la transición de no-zoomeado a zoomeado, antes de aplicar el nuevo
+  `transform`) y reutilizándolo en todos los `mousemove`/`touchmove`
+  posteriores hasta el próximo `resetZoom()`. Efecto colateral bueno: evita
+  releer `getBoundingClientRect()` (layout thrashing) en cada movimiento.
+- Pinch-to-zoom y arrastre táctil: `touchstart`/`touchmove`/`touchend` en la
+  imagen (con `{ passive: false }` para poder `preventDefault()`). Con 2
+  dedos, la distancia entre ambos determina el nivel de zoom
+  (`pinchStartZoom * (distanciaActual / distanciaInicial)`, clampeado 1–3) y
+  el punto medio entre dedos es el origen; con 1 dedo y ya zoomeado, la
+  posición del dedo hace de `setZoomOrigin()` igual que el mouse. Mientras
+  dura el pinch se agrega la clase `.is-panning` (quita `transform` de la
+  `transition`, deja solo `opacity`) para que los cambios de escala se
+  apliquen al instante y no arrastren un `transition: 250ms` en cada frame
+  del gesto — sin esto el pinch se siente con lag/rebote. `touch-action:
+  none` en `.lightbox-image` evita que el gesto del sistema (scroll,
+  double-tap-zoom de Safari) compita con el manejo propio. Un tap simple
+  (sin `touchmove`) no llama `preventDefault`, así que el navegador sigue
+  disparando el `click` sintético normal después de `touchend` → mismo
+  camino que el zoom por click de desktop (zoom-in en el punto tocado);
+  si hubo arrastre (`touchMoved`), sí se llama `preventDefault()` en
+  `touchend` para que ese `click` sintético no vuelva a alternar el zoom.
+- Nivel de zoom: `ZOOM_CLICK = 2.5` fijo para click/tap; pinch en rango
+  continuo `MIN_ZOOM = 1`–`MAX_ZOOM = 3`. Ambos alcanzan a ver la textura de
+  la pintura sin pixelarse (las imágenes fuente están en ~1500-3000px de
+  lado largo).
+- Vuelta al tamaño normal: otro click/tap sobre la imagen (`toggleZoomAt`),
+  Escape (con precedencia: si está zoomeada, la primera Escape solo
+  resetea el zoom sin cerrar el lightbox; recién una segunda Escape cierra
+  — así no se rompe el cierre estándar), o el control visible reciclado de
+  `.lightbox-zoom-hint` (era un `<span aria-hidden>` decorativo, ahora es un
+  `<button id="lightbox-zoom-toggle">` real con `aria-label` que alterna
+  entre "Ampliar imagen"/"Reducir imagen", zoom centrado porque no tiene un
+  punto de cursor propio). El zoom se resetea (`resetZoom()`) al cambiar de
+  imagen (`setActiveIndex`, cubre miniaturas y apertura inicial) y al cerrar
+  el lightbox (`close()`), así que nunca queda zoom "pegado" de la obra
+  anterior. `prefers-reduced-motion` ya se maneja solo: la regla global en
+  global.css fuerza `transition-duration` a ~0 para todo el sitio, y como el
+  zoom anima vía la propiedad CSS `transition` normal (no JS), hereda ese
+  comportamiento sin código adicional.
+- Verificado con `npm run build` (6 páginas, sin errores) y con Playwright
+  (instalado ad-hoc sobre `npm run dev`, no es dependencia del proyecto —
+  se desinstaló al terminar): en desktop, zoom-in en un punto no-central de
+  3 obras de proporción distinta (Batalla en el jardín — díptico apaisado,
+  Luz y asfalto — vertical, Img 8918 — apaisada) confirmando `scale(2.5)` +
+  cambio de `transform-origin` al mover el mouse (pan), zoom-out con
+  segundo click, zoom vía el botón visible, Escape (primera pulsación
+  resetea zoom sin cerrar, segunda cierra), reset de zoom al cambiar de
+  miniatura, y cierre con el botón X mientras está zoomeada. En mobile
+  (`iPhone 13` emulado, gestos táctiles reales vía CDP
+  `Input.dispatchTouchEvent` con dos punteros con `id` propio — sin `id`
+  Chromium no arma el pinch multi-touch correctamente): pinch-to-zoom hasta
+  `scale(3)`, arrastre de un dedo cambiando el `transform-origin`
+  (panning), y tap simple para volver a zoom 1. También verificado con
+  `reducedMotion: 'reduce'` (zoom y cierre funcionan igual). Screenshots
+  confirmando visualmente que la imagen ampliada cubre siempre el stage
+  completo, sin bordes vacíos, en las 3 obras de desktop y en mobile. Sin
+  errores de consola en ningún caso.
 
 ## Notas de entorno
 - Windows, dev server con `npm run dev` en modo foreground (no usar `astro dev --background` salvo que se pida explícitamente).

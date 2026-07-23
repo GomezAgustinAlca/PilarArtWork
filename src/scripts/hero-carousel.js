@@ -1,4 +1,4 @@
-const AUTOPLAY_MS = 6000;
+const AUTOPLAY_MS = 5000;
 
 function initHeroCarousel() {
   const carousel = document.getElementById('hero-carousel');
@@ -93,9 +93,11 @@ function initHeroCarousel() {
     else startAutoplay();
   });
 
-  carousel.addEventListener('mouseenter', stopAutoplay);
-  carousel.addEventListener('mouseleave', startAutoplay);
-
+  // Sin pausa por hover: mouseenter puede dispararse por un recálculo de
+  // hit-test del navegador (sin movimiento real del mouse) cuando el layout
+  // se corre bajo un cursor ya posicionado ahí al cargar la página — eso
+  // paraba el autoplay para siempre si el usuario entraba con el cursor
+  // sobre el hero. El botón de play/pausa alcanza para controlar la rotación.
   startAutoplay();
 }
 

@@ -1,7 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { Image } from 'astro:assets';
-import fotoArtista from '../assets/foto-artista.svg';
+import fotoArtista from '../assets/pilar-gomez-retrato.jpg';
+import fotoExposicion from '../assets/exposicion.jpg';
 import { siteConfig } from '../config/site';
 ---
 
@@ -23,6 +24,40 @@ import { siteConfig } from '../config/site';
       <p class="statement">{siteConfig.statement}</p>
     </div>
   </section>
+
+  <section class="container sobre-video" data-reveal>
+    <h2>En el taller</h2>
+    <div class="video-frame">
+      <video
+        id="about-video"
+        autoplay
+        muted
+        loop
+        playsinline
+        preload="metadata"
+        poster="/video/pilar-pintando-poster.jpg"
+        width="576"
+        height="1024"
+      >
+        <source src="/video/pilar-pintando.webm" type="video/webm" />
+        <source src="/video/pilar-pintando.mp4" type="video/mp4" />
+      </video>
+    </div>
+  </section>
+
+  <section class="container sobre-exposicion" data-reveal>
+    <figure>
+      <Image
+        src={fotoExposicion}
+        alt={`Obras de ${siteConfig.artistName} colgadas en una exposición`}
+        width={1600}
+        height={900}
+      />
+      <figcaption>Obra en exposición</figcaption>
+    </figure>
+  </section>
+
+  <script src="../scripts/about-video.js"></script>
 </Layout>
 
 <style>
@@ -81,5 +116,57 @@ import { siteConfig } from '../config/site';
       grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
       align-items: start;
     }
+  }
+
+  .sobre-video {
+    padding-block: 0 var(--space-10);
+    text-align: center;
+  }
+
+  .sobre-video h2 {
+    font-size: var(--text-xl);
+    margin-bottom: var(--space-4);
+  }
+
+  .video-frame {
+    max-width: 360px;
+    margin-inline: auto;
+  }
+
+  .video-frame video {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 9 / 16;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+
+  .sobre-exposicion {
+    padding-block: 0 var(--space-10);
+  }
+
+  .sobre-exposicion figure {
+    max-width: 900px;
+    margin-inline: auto;
+  }
+
+  .sobre-exposicion :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+
+  .sobre-exposicion figcaption {
+    margin-top: var(--space-3);
+    text-align: center;
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-wider);
+    text-transform: uppercase;
+    color: var(--color-text-subtle);
   }
 </style>

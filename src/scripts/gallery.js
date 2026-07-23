@@ -38,6 +38,7 @@ function initLightbox() {
   if (!lightbox) return;
 
   const imageEl = document.getElementById('lightbox-image');
+  const zoomToggleEl = document.getElementById('lightbox-zoom-toggle');
   const thumbsEl = document.getElementById('lightbox-thumbs');
   const titleEl = document.getElementById('lightbox-title');
   const metaPrincipalEl = document.getElementById('lightbox-meta-principal');
@@ -49,15 +50,138 @@ function initLightbox() {
   const whatsappEl = document.getElementById('lightbox-whatsapp');
   const badgeEl = document.getElementById('lightbox-badge');
 
+  const ZOOM_CLICK = 2.5;
+  const MIN_ZOOM = 1;
+  const MAX_ZOOM = 3;
+
   let imagenes = [];
   let lastFocused = null;
   let currentSrc = null;
   let loadSeq = 0;
 
+  let zoomLevel = 1;
+  let pinchActive = false;
+  let pinchStartDist = 0;
+  let pinchStartZoom = 1;
+  let touchMoved = false;
+  // Rect capturado en el instante en que arranca el zoom (transform aún sin
+  // aplicar): transform-origin en % siempre se resuelve contra el layout box
+  // SIN transformar, así que hay que fijar esta referencia una sola vez por
+  // sesión de zoom en vez de volver a leer getBoundingClientRect() en cada
+  // mousemove/touchmove — leerlo de nuevo ya con `scale()` aplicado daría un
+  // rect agrandado y produciría un feedback loop (el punto seguido por el
+  // cursor "corre").
+  let baseRect = null;
+
+  function clamp(value, min, max) {
+    return Math.min(max, Math.max(min, value));
+  }
+
+  function setZoomOrigin(clientX, clientY) {
+    const rect = baseRect || imageEl.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+    const x = clamp(((clientX - rect.left) / rect.width) * 100, 0, 100);
+    const y = clamp(((clientY - rect.top) / rect.height) * 100, 0, 100);
+    imageEl.style.transformOrigin = `${x}% ${y}%`;
+  }
+
+  function applyZoom(level) {
+    const wasZoomed = zoomLevel > 1.01;
+    zoomLevel = clamp(level, MIN_ZOOM, MAX_ZOOM);
+    const isZoomed = zoomLevel > 1.01;
+    if (isZoomed && !wasZoomed) baseRect = imageEl.getBoundingClientRect();
+    imageEl.style.transform = isZoomed ? `scale(${zoomLevel})` : '';
+    imageEl.classList.toggle('zoomed', isZoomed);
+    zoomToggleEl?.setAttribute('aria-label', isZoomed ? 'Reducir imagen' : 'Ampliar imagen');
+  }
+
+  function resetZoom() {
+    zoomLevel = 1;
+    pinchActive = false;
+    baseRect = null;
+    imageEl.style.transform = '';
+    imageEl.style.transformOrigin = '';
+    imageEl.classList.remove('zoomed', 'is-panning');
+    zoomToggleEl?.setAttribute('aria-label', 'Ampliar imagen');
+  }
+
+  function toggleZoomAt(clientX, clientY) {
+    if (zoomLevel > 1) {
+      resetZoom();
+    } else {
+      setZoomOrigin(clientX, clientY);
+      applyZoom(ZOOM_CLICK);
+    }
+  }
+
+  function touchDistance(a, b) {
+    return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+  }
+
+  function touchMidpoint(a, b) {
+    return { x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 };
+  }
+
+  imageEl.addEventListener('mousemove', (event) => {
+    if (zoomLevel <= 1) return;
+    setZoomOrigin(event.clientX, event.clientY);
+  });
+
+  imageEl.addEventListener(
+    'touchstart',
+    (event) => {
+      if (event.touches.length === 2) {
+        pinchActive = true;
+        pinchStartDist = touchDistance(event.touches[0], event.touches[1]);
+        pinchStartZoom = zoomLevel;
+        const mid = touchMidpoint(event.touches[0], event.touches[1]);
+        setZoomOrigin(mid.x, mid.y);
+        imageEl.classList.add('is-panning');
+        event.preventDefault();
+      } else if (event.touches.length === 1) {
+        touchMoved = false;
+      }
+    },
+    { passive: false }
+  );
+
+  imageEl.addEventListener(
+    'touchmove',
+    (event) => {
+      if (pinchActive && event.touches.length === 2) {
+        const dist = touchDistance(event.touches[0], event.touches[1]);
+        const mid = touchMidpoint(event.touches[0], event.touches[1]);
+        setZoomOrigin(mid.x, mid.y);
+        applyZoom(pinchStartZoom * (dist / pinchStartDist));
+        event.preventDefault();
+      } else if (event.touches.length === 1 && zoomLevel > 1) {
+        touchMoved = true;
+        setZoomOrigin(event.touches[0].clientX, event.touches[0].clientY);
+        event.preventDefault();
+      }
+    },
+    { passive: false }
+  );
+
+  const endTouch = (event) => {
+    if (pinchActive && event.touches.length < 2) {
+      pinchActive = false;
+      imageEl.classList.remove('is-panning');
+      if (zoomLevel <= 1.05) resetZoom();
+    }
+    if (event.touches.length === 0) {
+      if (touchMoved) event.preventDefault();
+      touchMoved = false;
+    }
+  };
+
+  imageEl.addEventListener('touchend', endTouch, { passive: false });
+  imageEl.addEventListener('touchcancel', endTouch, { passive: false });
+
   function setActiveIndex(index) {
     const img = imagenes[index];
     if (!img) return;
-    imageEl.classList.remove('zoomed');
+    resetZoom();
 
     if (img.src === currentSrc) {
       // Ya es la imagen mostrada (ej. reclick de la misma miniatura): no hay
@@ -162,6 +286,7 @@ function initLightbox() {
 
   function close() {
     if (lightbox.hidden) return;
+    resetZoom();
     lightbox.classList.remove('is-open');
     document.body.classList.remove('lightbox-open');
     if (lastFocused instanceof HTMLElement) lastFocused.focus();
@@ -190,8 +315,14 @@ function initLightbox() {
       return;
     }
 
+    if (target.closest('[data-lightbox-zoom-toggle]') && !lightbox.hidden) {
+      const rect = imageEl.getBoundingClientRect();
+      toggleZoomAt(rect.left + rect.width / 2, rect.top + rect.height / 2);
+      return;
+    }
+
     if (target.closest('[data-lightbox-image]') && !lightbox.hidden) {
-      imageEl.classList.toggle('zoomed');
+      toggleZoomAt(event.clientX, event.clientY);
       return;
     }
 
@@ -203,7 +334,11 @@ function initLightbox() {
 
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && !lightbox.hidden) {
-      close();
+      if (zoomLevel > 1) {
+        resetZoom();
+      } else {
+        close();
+      }
       return;
     }
     if (event.key === 'Enter' || event.key === ' ') {
