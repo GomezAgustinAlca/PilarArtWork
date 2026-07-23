@@ -9,7 +9,7 @@ export const siteConfig = {
    * Número de WhatsApp en formato internacional, solo dígitos
    * (sin '+', espacios ni guiones). Ej: 5491122334455
    */
-  whatsappNumber: '5491144132345',
+  whatsappNumber: '5491157292974',
 
   email: 'contacto@nombreartista.com',
 

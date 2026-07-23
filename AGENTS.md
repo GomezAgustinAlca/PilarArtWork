@@ -481,7 +481,7 @@ y flash de la obra anterior al abrir otra.
 
 Contacto de punta a punta (WhatsApp de testing + Web3Forms + obra de prueba
 en venta): `whatsappNumber` en site.ts pasó a `5491144132345` (número de
-testing, a reemplazar por el real de la artista). No hizo falta tocar
+testing). No hizo falta tocar
 `whatsappLink`/`whatsappLinkParaObra` (ya usaban `encodeURIComponent`):
 verificado en el HTML generado que tildes ("Quería" → `Quer%C3%ADa`),
 comillas del título ("Bosque" → `%22Bosque%22`) y espacios (`%20`) quedan
@@ -537,6 +537,15 @@ pasan por esas dos funciones de site.ts.
   de compra de "Bosque" en el lightbox (precio "$ 45.000", panel de compra
   visible, `href` de WhatsApp bien armado) y el link del footer en
   /contacto. Sin errores de consola.
+
+WhatsApp definitivo: `whatsappNumber` en site.ts pasó del número de testing
+(`5491144132345`) al real de la artista, `5491157292974`. Los 3 puntos de
+contacto (botón de compra del lightbox, botón de /contacto, link del footer)
+siguen sin tocarse — ya consumían el valor vía `whatsappLink`/
+`whatsappLinkParaObra` en vez de tenerlo hardcodeado, así que heredaron el
+número nuevo automáticamente. Verificado con `npm run build` (6 páginas, sin
+errores) y grep del número en el `dist/` generado, presente en las 6
+páginas.
 
 ## Notas de entorno
 - Windows, dev server con `npm run dev` en modo foreground (no usar `astro dev --background` salvo que se pida explícitamente).
