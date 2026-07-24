@@ -24,6 +24,13 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* Usado por gallery.js (Lightbox) y proyecto-viewer.js (ProyectoViewer) para
+   bloquear el scroll de fondo mientras cualquiera de los dos overlays está
+   abierto. */
+body.lightbox-open {
+  overflow: hidden;
+}
+
 h1,
 h2,
 h3,

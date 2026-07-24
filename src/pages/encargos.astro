@@ -3,8 +3,11 @@ import Layout from '../layouts/Layout.astro';
 import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import { siteConfig, whatsappLink } from '../config/site';
+import ProyectoCard from '../components/ProyectoCard.astro';
+import ProyectoViewer from '../components/ProyectoViewer.astro';
 
 const prensa = (await getCollection('prensa')).sort((a, b) => b.data.anio - a.data.anio);
+const proyectos = await getCollection('proyectos');
 ---
 
 <Layout
@@ -15,6 +18,23 @@ const prensa = (await getCollection('prensa')).sort((a, b) => b.data.anio - a.da
     <p class="eyebrow">Trabajo por encargo</p>
     <h1>Encargos y prensa</h1>
   </header>
+
+  {
+    proyectos.length > 0 && (
+      <section class="container proyectos-section">
+        <h2 data-reveal>Proyectos</h2>
+        <ul class="proyectos-list">
+          {
+            proyectos.map((proyecto) => (
+              <li data-reveal>
+                <ProyectoCard proyecto={proyecto} />
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+    )
+  }
 
   {
     prensa.length === 0 ? (
@@ -57,6 +77,9 @@ const prensa = (await getCollection('prensa')).sort((a, b) => b.data.anio - a.da
   </ul>
     )
   }
+
+  <ProyectoViewer />
+  <script src="../scripts/proyecto-viewer.js"></script>
 </Layout>
 
 <style>
@@ -71,6 +94,31 @@ const prensa = (await getCollection('prensa')).sort((a, b) => b.data.anio - a.da
     font-size: var(--text-xs);
     color: var(--color-text-subtle);
     margin-bottom: var(--space-2);
+  }
+
+  .proyectos-section {
+    padding-block: 0 var(--space-8);
+  }
+
+  .proyectos-section h2 {
+    font-size: var(--text-2xl);
+    margin-bottom: var(--space-5);
+  }
+
+  @media (min-width: 768px) {
+    .proyectos-section h2 {
+      font-size: var(--text-4xl);
+    }
+  }
+
+  .proyectos-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--space-6);
+    max-width: 480px;
   }
 
   .prensa-list {

@@ -1,0 +1,214 @@
+---
+---
+
+<div class="proyecto-viewer" id="proyecto-viewer" hidden>
+  <div class="proyecto-viewer-backdrop" data-proyecto-viewer-close></div>
+  <div class="proyecto-viewer-panel" role="dialog" aria-modal="true" aria-labelledby="proyecto-viewer-title">
+    <button type="button" class="proyecto-viewer-close" data-proyecto-viewer-close aria-label="Cerrar">×</button>
+
+    <header class="proyecto-viewer-header">
+      <h2 id="proyecto-viewer-title"></h2>
+      <p class="proyecto-viewer-subtitulo" id="proyecto-viewer-subtitulo"></p>
+    </header>
+
+    <div class="proyecto-viewer-stage">
+      <button
+        type="button"
+        class="proyecto-viewer-nav proyecto-viewer-prev"
+        id="proyecto-viewer-prev"
+        aria-label="Página anterior"
+      >
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+      </button>
+
+      <img class="proyecto-viewer-image" id="proyecto-viewer-image" alt="" />
+
+      <button
+        type="button"
+        class="proyecto-viewer-nav proyecto-viewer-next"
+        id="proyecto-viewer-next"
+        aria-label="Página siguiente"
+      >
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </button>
+    </div>
+
+    <p class="proyecto-viewer-counter" id="proyecto-viewer-counter"></p>
+  </div>
+</div>
+
+<style>
+  .proyecto-viewer {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    padding: var(--space-5);
+  }
+
+  .proyecto-viewer[hidden] {
+    display: none;
+  }
+
+  .proyecto-viewer:not([hidden]) {
+    display: grid;
+    place-items: center;
+    opacity: 0;
+    transition: opacity var(--transition-base);
+  }
+
+  .proyecto-viewer.is-open {
+    opacity: 1;
+  }
+
+  .proyecto-viewer-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(43, 39, 36, 0.6);
+  }
+
+  .proyecto-viewer-panel {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    background: var(--color-bg-elevated);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    max-width: 900px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: var(--space-6);
+    transform: scale(0.96) translateY(12px);
+    transition: transform var(--transition-base);
+  }
+
+  .proyecto-viewer.is-open .proyecto-viewer-panel {
+    transform: none;
+  }
+
+  .proyecto-viewer-close {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    z-index: 2;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    border: none;
+    background: var(--color-bg-elevated);
+    color: var(--color-text);
+    font-size: var(--text-xl);
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .proyecto-viewer-close:hover {
+    color: var(--color-accent);
+  }
+
+  .proyecto-viewer-header {
+    padding-right: var(--space-8);
+  }
+
+  .proyecto-viewer-header h2 {
+    font-size: var(--text-2xl);
+    color: var(--color-text);
+    margin-bottom: var(--space-1);
+  }
+
+  .proyecto-viewer-subtitulo {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    margin: 0;
+  }
+
+  .proyecto-viewer-stage {
+    position: relative;
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    touch-action: pan-y;
+  }
+
+  .proyecto-viewer-image {
+    max-width: 100%;
+    max-height: 65vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    opacity: 0;
+    transition: opacity var(--transition-base);
+  }
+
+  .proyecto-viewer-image.is-ready {
+    opacity: 1;
+  }
+
+  .proyecto-viewer-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    border: none;
+    background: rgba(43, 39, 36, 0.55);
+    color: var(--color-bg-elevated);
+    cursor: pointer;
+  }
+
+  .proyecto-viewer-nav:hover,
+  .proyecto-viewer-nav:focus-visible {
+    background: rgba(43, 39, 36, 0.75);
+  }
+
+  .proyecto-viewer-nav[disabled] {
+    opacity: 0.3;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  .proyecto-viewer-prev {
+    left: var(--space-3);
+  }
+
+  .proyecto-viewer-next {
+    right: var(--space-3);
+  }
+
+  .proyecto-viewer-counter {
+    text-align: center;
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--color-text-subtle);
+    margin: 0;
+  }
+
+  @media (max-width: 600px) {
+    .proyecto-viewer-panel {
+      padding: var(--space-4);
+    }
+
+    .proyecto-viewer-nav {
+      width: 2.25rem;
+      height: 2.25rem;
+    }
+  }
+</style>

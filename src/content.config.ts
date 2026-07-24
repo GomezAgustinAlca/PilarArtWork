@@ -47,4 +47,18 @@ const prensa = defineCollection({
     }),
 });
 
-export const collections = { obras, exposiciones, prensa };
+const proyectos = defineCollection({
+  loader: glob({ pattern: '**/*.yaml', base: './src/content/proyectos' }),
+  schema: ({ image }) =>
+    z.object({
+      titulo: z.string(),
+      subtitulo: z.string(),
+      tipo: z.enum(['libro_album', 'ilustracion', 'colaboracion', 'otro']),
+      anio: z.number().int().optional(),
+      descripcion: z.string().optional(),
+      imagenPortada: image(),
+      imagenes: z.array(image()),
+    }),
+});
+
+export const collections = { obras, exposiciones, prensa, proyectos };

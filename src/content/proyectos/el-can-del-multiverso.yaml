@@ -1,0 +1,18 @@
+titulo: "El can del multiverso"
+subtitulo: "Libro álbum · Historia ilustrada a modo de relato"
+tipo: "libro_album"
+# anio: PENDIENTE - confirmar con la artista
+# descripcion: PENDIENTE - confirmar con la artista
+imagenPortada: "./images/el-can-del-multiverso-01.jpg"
+imagenes:
+  - "./images/el-can-del-multiverso-01.jpg"
+  - "./images/el-can-del-multiverso-02.jpg"
+  - "./images/el-can-del-multiverso-03.jpg"
+  - "./images/el-can-del-multiverso-04.jpg"
+  - "./images/el-can-del-multiverso-05.jpg"
+  - "./images/el-can-del-multiverso-06.jpg"
+  - "./images/el-can-del-multiverso-07.jpg"
+  - "./images/el-can-del-multiverso-08.jpg"
+  - "./images/el-can-del-multiverso-09.jpg"
+  - "./images/el-can-del-multiverso-10.jpg"
+  - "./images/el-can-del-multiverso-11.jpg"

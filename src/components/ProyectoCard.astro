@@ -1,0 +1,96 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { Image, getImage } from 'astro:assets';
+
+interface Props {
+  proyecto: CollectionEntry<'proyectos'>;
+}
+
+const { proyecto } = Astro.props;
+const { titulo, subtitulo, imagenPortada, imagenes } = proyecto.data;
+
+const imagenesVisor = await Promise.all(
+  imagenes.map(async (img, i) => {
+    const optimizada = await getImage({ src: img, width: 1600 });
+    return {
+      src: optimizada.src,
+      width: optimizada.attributes.width,
+      height: optimizada.attributes.height,
+      alt: `${titulo} — página ${i + 1}`,
+    };
+  })
+);
+---
+
+<article
+  class="proyecto-card"
+  data-proyecto-id={proyecto.id}
+  data-titulo={titulo}
+  data-subtitulo={subtitulo}
+  data-imagenes={JSON.stringify(imagenesVisor)}
+  tabindex="0"
+  role="button"
+  aria-haspopup="dialog"
+>
+  <div class="proyecto-media">
+    <Image src={imagenPortada} alt={titulo} width={480} height={480} loading="lazy" />
+  </div>
+  <div class="proyecto-info">
+    <h2>{titulo}</h2>
+    <p class="proyecto-subtitulo">{subtitulo}</p>
+  </div>
+</article>
+
+<style>
+  .proyecto-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    cursor: pointer;
+  }
+
+  .proyecto-card:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 4px;
+    border-radius: var(--radius-md);
+  }
+
+  .proyecto-media {
+    position: relative;
+    background: var(--color-surface);
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow var(--transition-base), transform var(--transition-base);
+  }
+
+  .proyecto-media img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    transition: transform var(--transition-base);
+  }
+
+  .proyecto-card:hover .proyecto-media,
+  .proyecto-card:focus-visible .proyecto-media {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-3px);
+  }
+
+  .proyecto-card:hover .proyecto-media img,
+  .proyecto-card:focus-visible .proyecto-media img {
+    transform: scale(1.03);
+  }
+
+  .proyecto-info h2 {
+    font-size: var(--text-xl);
+    margin-bottom: var(--space-1);
+  }
+
+  .proyecto-subtitulo {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    margin: 0;
+  }
+</style>

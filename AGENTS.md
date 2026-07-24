@@ -17,18 +17,21 @@ para títulos, sans (Inter) para texto. JavaScript al mínimo indispensable.
 - src/styles/tokens.css — tokens de diseño (color, tipografía, espaciado). Editar acá para cambios de estética.
 - src/styles/global.css — reset + estilos base + utilidades compartidas (`.btn`/`.btn-primary`/`.btn-outline`, `.sr-only`).
 - src/config/site.ts — config global: whatsappNumber, nombre/tagline, socials, email, bio (extracto + párrafos), statement, contactForm (endpoint/accessKey para Web3Forms o Formspree, todavía sin conectar).
-- src/content.config.ts — schemas de las collections "obras", "exposiciones" y "prensa".
-- src/content/obras/*.yaml, src/content/exposiciones/*.yaml, src/content/prensa/*.yaml — una entrada por archivo en cada collection.
+- src/content.config.ts — schemas de las collections "obras", "exposiciones", "prensa" y "proyectos".
+- src/content/obras/*.yaml, src/content/exposiciones/*.yaml, src/content/prensa/*.yaml, src/content/proyectos/*.yaml — una entrada por archivo en cada collection.
 - src/layouts/Layout.astro — layout base: fuentes, Header/Footer, SEO (title/description/canonical), meta tags Open Graph/Twitter y Vercel Web Analytics (`<Analytics />`).
 - src/components/Header.astro — nav sticky con menú hamburguesa en mobile (toggle vía src/scripts/nav.js, sin dependencias).
 - src/components/Footer.astro — redes, email, WhatsApp y copyright.
 - src/components/ObraCard.astro — tarjeta de obra (se usa solo en /galeria, acoplada al lightbox).
 - src/components/Filters.astro — filtros de galería (serie/técnica/año), client-side.
 - src/components/Lightbox.astro — overlay con zoom y miniaturas, uno por obra.
+- src/components/ProyectoCard.astro — tarjeta de proyecto (portada + título + subtítulo), usada en /encargos. Coupled al visor de proyecto vía `data-proyecto-id` (mismo patrón que ObraCard con el lightbox), pero es un componente separado, no una variante de ObraCard.
+- src/components/ProyectoViewer.astro — overlay de páginas navegables (flechas + contador) para un proyecto tipo libro álbum. Deliberadamente NO es el Lightbox de galería: comparte el look (mismo estilo de overlay/backdrop/panel) pero no los campos de obra (precio, estado, dimensiones, serie) que no aplican a un proyecto, y usa ids propios (`#proyecto-viewer`, etc.) para poder convivir sin conflicto si algún día ambos componentes viven en la misma página.
 - src/scripts/gallery.js — JS de filtros + lightbox (delegación de eventos, mínimo).
+- src/scripts/proyecto-viewer.js — JS del visor de proyecto: navegación por flechas, teclado (←/→, Escape) y swipe táctil (`touchstart`/`touchend`, umbral de 40px). Un solo `<img>` que cambia de `src` por página (mismo patrón anti-flash de `.is-ready` + `loadSeq` que gallery.js usa para el lightbox).
 - src/scripts/nav.js — JS del menú hamburguesa (toggle de clase + aria-expanded).
 - src/scripts/about-video.js — pausa/desactiva el autoplay del video de /sobre si `prefers-reduced-motion`.
-- src/content/obras/images/, src/content/exposiciones/images/, src/content/prensa/images/ — imágenes de cada collection (vía helper `image()`, no en public/).
+- src/content/obras/images/, src/content/exposiciones/images/, src/content/prensa/images/, src/content/proyectos/images/ — imágenes de cada collection (vía helper `image()`, no en public/).
 - src/assets/pilar-gomez-retrato.jpg — retrato real de la artista (foto de una exposición), usado en /sobre y como imagen default de Open Graph (Layout.astro). Importado directo con `astro:assets` (no es una obra ni pertenece a una collection). src/assets/foto-artista.svg (placeholder anterior) quedó sin uso, no se borró.
 - src/assets/exposicion.jpg — foto de obras colgadas en una muestra, usada al final de /sobre.
 - public/video/ — video de la artista pintando en el taller (pilar-pintando.mp4/.webm + poster), usado en /sobre. No pasa por `astro:assets` (es un `<video>` nativo, no una imagen).
@@ -62,6 +65,16 @@ titulo, tipo (string libre, ej. "Ilustración para cortometraje", "Aparición
 en cine", "Colaboración", "Prensa"), anio, descripcion, imagen (opcional),
 link (opcional, url externa). Listado en /encargos, orden descendente por
 `anio`.
+
+## Modelo de datos (proyecto)
+titulo, subtitulo, tipo ("libro_album" | "ilustracion" | "colaboracion" |
+"otro"), anio (opcional), descripcion (opcional), imagenPortada, imagenes[]
+(array ORDENADO — el orden de este array es el orden narrativo real, no se
+reordena en ningún punto del código). Un proyecto NO es una obra: no tiene
+`estado`, `precio` ni `dimensiones`, no aparece en /galeria, y se muestra en
+/encargos como una card (portada + título + subtítulo, componente
+ProyectoCard.astro) que abre ProyectoViewer.astro — un visor de páginas
+navegables (flechas/teclado/swipe), no el Lightbox de obras.
 
 ## Reglas de estado
 - disponible: muestra precio + botón WhatsApp "Consultar / Comprar".
@@ -829,6 +842,75 @@ letter-spacing. No se tocó la grilla de galería, el lightbox ni el hero
   HTML aislado fuera del sitio, que el filtro SVG del grano efectivamente
   pinta ruido (probado primero a alfa alto para confirmar que no estaba
   roto, después bajado a 0.1) antes de fijar el valor final en producción.
+
+Proyecto "El can del multiverso" (libro álbum, primer proyecto no-obra):
+nueva collection "proyectos" (ver "Modelo de datos (proyecto)" arriba) para
+contenido narrativo-secuencial que no encaja en el modelo de obra individual
+(sin precio/estado/dimensiones, no va a /galeria).
+- Origen y procesamiento de imágenes: 11 ilustraciones en works/
+  (elcanuniverso.jpg + elcanuniverso1.jpg .. elcanuniverso10.jpg, works/ no
+  se tocó). El orden alfabético de esos nombres NO es el orden narrativo
+  (elcanuniverso10 ordena antes que elcanuniverso2): el orden real es
+  elcanuniverso.jpg (sin número, página 1) y luego elcanuniverso1..10.jpg en
+  orden numérico (páginas 2 a 11). Procesadas con el mismo criterio que
+  works/procesadas (Pillow: `ImageOps.exif_transpose`, máx. 3000px de lado
+  largo — ya estaban en 1600px así que ninguna se reescaló —, JPG calidad
+  95, perfil ICC preservado si existía — ninguna de las 11 traía uno) y
+  copiadas a src/content/proyectos/images/ con nombre kebab-case
+  `el-can-del-multiverso-01.jpg` .. `-11.jpg` (padding a 2 dígitos a
+  propósito, para que el nombre de archivo en sí ordene bien
+  alfabéticamente y no repita la trampa del "10 antes que 2").
+- src/content/proyectos/el-can-del-multiverso.yaml: `titulo` y `subtitulo`
+  con el texto exacto pedido por la artista ("El can del multiverso" /
+  "Libro álbum · Historia ilustrada a modo de relato"), `tipo:
+  "libro_album"`. `anio` y `descripcion` NO se cargaron (quedan comentados
+  como `# PENDIENTE` en el propio .yaml, ambos campos opcionales en el
+  schema) — no se inventó ningún dato que la artista no dio.
+  `imagenPortada` es la página 1 (`el-can-del-multiverso-01.jpg`);
+  `imagenes[]` son las 11 páginas en el mismo orden narrativo (01 a 11), sin
+  reordenar en ningún punto del código (ProyectoCard.astro pasa el array tal
+  cual a `getImage`, y ProyectoViewer/proyecto-viewer.js solo navegan por
+  índice sobre ese mismo orden).
+- UI en /encargos: nueva sección "Proyectos" (antes del listado de
+  prensa/encargos, que sigue igual) con una grilla de ProyectoCard.astro
+  (portada 1:1 + título + subtítulo, mismo tratamiento visual que ObraCard
+  pero sin precio/estado). Al hacer click abre ProyectoViewer.astro, un
+  visor nuevo y separado del Lightbox de galería (ver nota en "Arquitectura"
+  arriba sobre por qué no se reutilizó el mismo componente): imagen a
+  imagen con flechas prev/next (se deshabilitan en la primera/última
+  página), contador "N / 11", navegación por teclado (←/→ cambian de
+  página, Escape cierra) y swipe táctil (`touchstart`/`touchend`, umbral de
+  40px, en src/scripts/proyecto-viewer.js). Reutiliza el mismo patrón
+  anti-flash que el lightbox de galería (clase `.is-ready` + contador
+  `loadSeq` para descartar cargas obsoletas si se navega rápido).
+- Refactor chico para que ambos overlays convivan: la regla
+  `body.lightbox-open { overflow: hidden }` vivía como `<style is:global>`
+  dentro de galeria.astro (con Astro, los estilos de un componente/página
+  solo se emiten en los bundles que lo importan, así que en /encargos esa
+  regla no existía). Como ahora dos scripts independientes
+  (gallery.js y proyecto-viewer.js) necesitan la misma regla, se movió a
+  src/styles/global.css (compartido por todas las páginas) y se borró el
+  bloque duplicado de galeria.astro.
+- No se tocó el schema de "obras" ni ObraCard/Lightbox/gallery.js: la
+  galería, sus filtros y su lightbox funcionan exactamente igual que antes
+  (verificado explícitamente, ver abajo).
+- Verificado con `npm run build` (6 páginas, sin errores) y con Playwright
+  (instalado ad-hoc sobre `npm run preview`, no es dependencia del
+  proyecto — se desinstaló al terminar): orden de las 11 imágenes leído
+  directamente del HTML generado (`data-imagenes` de ProyectoCard, JSON con
+  el resultado de `getImage`) confirmando 01→11 en secuencia; apertura del
+  visor, avance con el botón "siguiente" y con ArrowRight/ArrowLeft,
+  botones prev/next deshabilitados en la primera y última página, cierre
+  con Escape; screenshots desktop y mobile (390px) de la card y el visor
+  abierto. Además, chequeo de regresión en /galeria (abrir un obra-lightbox,
+  confirmar `overflow: hidden` en `<body>`, cerrar con Escape) para
+  confirmar que el refactor del `body.lightbox-open` compartido no rompió
+  el lightbox existente. Sin errores de consola en ningún caso (aparte del
+  404 esperado de Vercel Analytics en local, ya documentado más arriba).
+
+Pendiente: confirmar con la artista `anio` y `descripcion` de "El can del
+multiverso" (hoy PENDIENTE/vacíos, ver .yaml) antes de considerar el
+proyecto completo.
 
 ## Notas de entorno
 - Windows, dev server con `npm run dev` en modo foreground (no usar `astro dev --background` salvo que se pida explícitamente).
